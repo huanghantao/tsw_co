@@ -41,6 +41,9 @@ static tswCo *new_tswCo(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud)
     return C;
 }
 
+/*
+ * init the coroutine schedule
+*/
 tswCo_schedule* tswCo_open()
 {
     tswCo_schedule *S;
@@ -64,6 +67,9 @@ tswCo_schedule* tswCo_open()
     return S;
 }
 
+/*
+ * close the coroutine and coroutine schedule
+*/
 void tswCo_close(tswCo_schedule *S)
 {
     int id;
