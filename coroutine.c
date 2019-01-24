@@ -41,6 +41,24 @@ static tswCo *new_tswCo(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud)
     return C;
 }
 
+static int tswCo_cap_check(tswCo_schedule *S)
+{
+    if (S->nco >= S->cap) {
+        int old_cap = S->cap;
+        tswCo **co;
+        co = realloc(S->co, sizeof(tswCo *) * old_cap * 2);
+        if (co == NULL) {
+            tswWarn("realloc error");
+            return TSW_ERR;
+        }
+        S->co = co;
+        S->cap = 2 * old_cap;
+        memset(S->co + old_cap, 0, sizeof(tswCo *) * old_cap);
+    }
+
+    return TSW_OK;
+}
+
 /*
  * init the coroutine schedule
 */
@@ -87,24 +105,6 @@ void tswCo_close(tswCo_schedule *S)
     free(S->co);
     S->co = NULL;
     free(S);
-}
-
-static int tswCo_cap_check(tswCo_schedule *S)
-{
-    if (S->nco >= S->cap) {
-        int old_cap = S->cap;
-        tswCo **co;
-        co = realloc(S->co, sizeof(tswCo *) * old_cap * 2);
-        if (co == NULL) {
-            tswWarn("realloc error");
-            return TSW_ERR;
-        }
-        S->co = co;
-        S->cap = 2 * old_cap;
-        memset(S->co + old_cap, 0, sizeof(tswCo *) * old_cap);
-    }
-
-    return TSW_OK;
 }
 
 /*
