@@ -134,3 +134,11 @@ int tswCo_new(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud)
 
     return TSW_OK;
 }
+
+/*
+ * get the running coroutine
+*/
+int tswCo_running(tswCo_schedule *S)
+{
+    return S->running;
+}

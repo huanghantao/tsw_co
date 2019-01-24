@@ -31,6 +31,7 @@ int main(int argc, char const *argv[])
 
     tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)&arg1);
     tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)&arg2);
+    tswDebug("The coroutine [%d] is running", tswCo_running(S));
 
     tswCo_close(S);
     return 0;
