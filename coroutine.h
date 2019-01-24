@@ -39,5 +39,6 @@ struct tswCo {
 
 tswCo_schedule* tswCo_open();
 void tswCo_close(tswCo_schedule *S);
+int tswCo_new(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud);
 
 #endif /* TSW_COROUTINE_H_ */
