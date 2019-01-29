@@ -64,21 +64,21 @@ static void tswCo_delete(tswCo *C)
 
 static void tswCo_entry(uintptr_t low, uintptr_t high)
 {
-	uintptr_t p;
+    uintptr_t p;
     int id;
     tswCo *C;
     tswCoCtx tmp;
     tswCo_schedule *S;
 
     p = (uintptr_t)low | ((uintptr_t) high << 32);
-	S = (tswCo_schedule *)p;
+    S = (tswCo_schedule *)p;
 
-	id = S->running;
-	C = S->co[id];
-	C->func(S, C->ud);
+    id = S->running;
+    C = S->co[id];
+    C->func(S, C->ud);
     C->status = TSW_CO_DEAD;
-	S->running = -1;
-	S->nco--;
+    S->running = -1;
+    S->nco--;
     coctx_swap(&tmp, &S->main);
 }
 
@@ -165,15 +165,15 @@ int tswCo_new(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud)
 
     for (i = 0; i <= S->cap; i++) {
         id = (i + S->nco) % S->cap;
-		if (S->co[id] == NULL) {
-			break;
+        if (S->co[id] == NULL) {
+            break;
         }
     }
 
     S->nco++;
-	S->co[id] = C;
+    S->co[id] = C;
 
-	return id;
+    return id;
 }
 
 /*
@@ -205,7 +205,7 @@ int tswCo_resume(tswCo_schedule *S, int id)
         tswWarn("S->running != -1");
         return TSW_ERR;
     }
-	C = S->co[id];
+    C = S->co[id];
     if (C == NULL) {
         tswWarn("C == NULL");
         return TSW_ERR;
@@ -215,22 +215,22 @@ int tswCo_resume(tswCo_schedule *S, int id)
         return TSW_ERR;
     }
 
-	switch(C->status) {
-	case TSW_CO_READY:
+    switch(C->status) {
+    case TSW_CO_READY:
         coctx_get(&C->ctx);
         C->ctx.stack.ss_sp = C->stack;
-		C->ctx.stack.ss_size = C->st_sz;
-		C->status = TSW_CO_RUNING;
-		S->running = id;
+        C->ctx.stack.ss_size = C->st_sz;
+        C->status = TSW_CO_RUNING;
+        S->running = id;
         coctx_make(&C->ctx, (tswCo_mkctx_func)tswCo_entry, (uint32_t)(uintptr_t)S, (uint32_t)((uintptr_t)S>>32));
         coctx_swap(&S->main, &C->ctx);
-		break;
-	case TSW_CO_SUSPEND:
-		S->running = id;
-		C->status = TSW_CO_RUNING;
+        break;
+    case TSW_CO_SUSPEND:
+        S->running = id;
+        C->status = TSW_CO_RUNING;
         // ... 
-		break;
-	}
+        break;
+    }
 
     return TSW_OK;
 }

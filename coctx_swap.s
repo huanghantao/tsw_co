@@ -25,25 +25,25 @@ coctx_swap:
     movq %rcx, 96(%rdi)
 
     // load rsp
-    movq	96(%rsi), %rsp
-    movq	72(%rsi), %rbx
-    movq	64(%rsi), %rbp
-    movq	16(%rsi), %r12
-    movq	24(%rsi), %r13
-    movq	32(%rsi), %r14
-    movq	40(%rsi), %r15
+    movq 96(%rsi), %rsp
+    movq 72(%rsi), %rbx
+    movq 64(%rsi), %rbp
+    movq 16(%rsi), %r12
+    movq 24(%rsi), %r13
+    movq 32(%rsi), %r14
+    movq 40(%rsi), %r15
 
     // load rip
-    movq	104(%rsi), %rcx
-    pushq	%rcx
+    movq 104(%rsi), %rcx
+    pushq %rcx
 
-    movq	48(%rsi), %rdi
-    movq	80(%rsi), %rdx
-    movq	88(%rsi), %rcx
-    movq	(%rsi), %r8
-    movq	8(%rsi), %r9
+    movq 48(%rsi), %rdi
+    movq 80(%rsi), %rdx
+    movq 88(%rsi), %rcx
+    movq (%rsi), %r8
+    movq 8(%rsi), %r9
 
-    movq	56(%rsi), %rsi
+    movq 56(%rsi), %rsi
 
     ret
 	
