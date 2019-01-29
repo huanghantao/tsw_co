@@ -7,20 +7,20 @@
 #include "coctx.h"
 
 enum {
-	R8 = 0,
-	R9,
-	R12,
-	R13,
-	R14,
-	R15,
-	RDI,
-	RSI,
-	RBP,
-	RBX,
-	RDX,
-	RCX,
-	RSP,
-	RIP
+    R8 = 0,
+    R9,
+    R12,
+    R13,
+    R14,
+    R15,
+    RDI,
+    RSI,
+    RBP,
+    RBX,
+    RDX,
+    RCX,
+    RSP,
+    RIP
 };
 
 typedef struct tswCoStack tswCoStack;
@@ -28,13 +28,13 @@ typedef struct tswCoCtx tswCoCtx;
 typedef void (*tswCo_mkctx_func)();
 
 struct tswCoStack {
-	char *ss_sp;
-	int ss_size;
+    char *ss_sp;
+    int ss_size;
 };
 
 struct tswCoCtx {
-	void *regs[14];
-	tswCoStack stack;
+    void *regs[14];
+    tswCoStack stack;
 };
 
 extern void coctx_get(tswCoCtx *ctx) asm("coctx_get");

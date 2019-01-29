@@ -25,13 +25,13 @@ int coctx_make(tswCoCtx *ctx, tswCo_mkctx_func pfn, uintptr_t s, uintptr_t s1)
 {
     char *sp;
 
-	sp = (char *)((uintptr_t)ctx->stack.ss_sp + ctx->stack.ss_size); // 用户自定义的栈顶
+    sp = (char *)((uintptr_t)ctx->stack.ss_sp + ctx->stack.ss_size); // 用户自定义的栈顶
     sp = (char *)(((uintptr_t)sp & -16L) - 8);
 
-	ctx->regs[RSP] = sp;
-	ctx->regs[RIP] = (char *)pfn;
-	ctx->regs[RDI] = (char *)s;
-	ctx->regs[RSI] = (char *)s1;
+    ctx->regs[RSP] = sp;
+    ctx->regs[RIP] = (char *)pfn;
+    ctx->regs[RDI] = (char *)s;
+    ctx->regs[RSI] = (char *)s1;
 
-	return 0;
+    return 0;
 }
