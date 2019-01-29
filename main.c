@@ -14,8 +14,13 @@ void func(tswCo_schedule *S, void *ud)
     tswDebug("arg: %d", arg->n);
 }
 
+/*
+ * main coroutine
+*/
 int main(int argc, char const *argv[])
 {
+    int co1;
+    int co2;
     struct args arg1;
     struct args arg2;
     tswCo_schedule *S;
@@ -29,9 +34,11 @@ int main(int argc, char const *argv[])
     arg1.n = 1;
     arg2.n = 2;
 
-    tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)&arg1);
-    tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)&arg2);
-    tswDebug("The coroutine [%d] is running", tswCo_running(S));
+    co1 = tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)&arg1);
+    co2 = tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)&arg2);
+
+    tswCo_resume(S, co1);
+    tswCo_resume(S, co2);
 
     tswCo_close(S);
     return 0;

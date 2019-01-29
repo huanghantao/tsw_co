@@ -9,7 +9,7 @@ OBJS = $(patsubst %.c, obj/%.o, $(C_FILES))
 
 $(TARGET):$(OBJS)
 	-rm -f $@
-	$(CC) -o $(TARGET) $(CFLAGS) $(OBJS)
+	$(CC) -o $(TARGET) $(CFLAGS) $(OBJS) coctx_get.s coctx_swap.s
 
 obj/%.o:%.c
 	$(CC) -c -o $@ $< $(CFLAGS)

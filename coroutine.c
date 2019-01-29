@@ -1,17 +1,13 @@
 #include <string.h>
+#include <stdint.h>
 #include "coroutine.h"
+#include "coctx.h"
 #include "log.h"
 
-static inline void delete_tswCo(tswCo *C);
-static  tswCo *new_tswCo(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud);
+static inline void tswCo_delete(tswCo *C);
+static tswCo *new_tswCo(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud);
 static int tswCo_cap_check(tswCo_schedule *S);
-
-static inline void delete_tswCo(tswCo *C)
-{
-    free(C->stack);
-    C->stack = NULL;
-    free(C);
-}
+static void tswCo_entry(uintptr_t low, uintptr_t high);
 
 static tswCo *new_tswCo(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud)
 {
@@ -59,8 +55,35 @@ static int tswCo_cap_check(tswCo_schedule *S)
     return TSW_OK;
 }
 
+static void tswCo_delete(tswCo *C)
+{
+	free(C->stack);
+    C->stack = NULL;
+	free(C);
+}
+
+static void tswCo_entry(uintptr_t low, uintptr_t high)
+{
+	uintptr_t p;
+    int id;
+    tswCo *C;
+    tswCoCtx tmp;
+    tswCo_schedule *S;
+
+    p = (uintptr_t)low | ((uintptr_t) high << 32);
+	S = (tswCo_schedule *)p;
+
+	id = S->running;
+	C = S->co[id];
+	C->func(S, C->ud);
+    C->status = TSW_CO_DEAD;
+	S->running = -1;
+	S->nco--;
+    coctx_swap(&tmp, &S->main);
+}
+
 /*
- * init the coroutine schedule
+ * @function: init the coroutine schedule
 */
 tswCo_schedule* tswCo_open()
 {
@@ -86,7 +109,7 @@ tswCo_schedule* tswCo_open()
 }
 
 /*
- * close the coroutine and coroutine schedule
+ * @function: close the coroutine and coroutine schedule
 */
 void tswCo_close(tswCo_schedule *S)
 {
@@ -98,13 +121,13 @@ void tswCo_close(tswCo_schedule *S)
         if(C == NULL) {
             continue;
         }
-        delete_tswCo(C);
-        S->co[id] = NULL;
+        tswCo_delete(C);
     }
 
     free(S->co);
     S->co = NULL;
     free(S);
+    S = NULL;
 }
 
 /*
@@ -119,6 +142,8 @@ void tswCo_close(tswCo_schedule *S)
 */
 int tswCo_new(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud)
 {
+    int i;
+    int id;
     tswCo *C;
 
     C = (tswCo *)malloc(sizeof(tswCo));
@@ -138,13 +163,74 @@ int tswCo_new(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud)
         return TSW_ERR;
     }
 
-    return TSW_OK;
+    for (i = 0; i <= S->cap; i++) {
+        id = (i + S->nco) % S->cap;
+		if (S->co[id] == NULL) {
+			break;
+        }
+    }
+
+    S->nco++;
+	S->co[id] = C;
+
+	return id;
 }
 
 /*
- * get the running coroutine
+ * @function: get the running coroutine
 */
 int tswCo_running(tswCo_schedule *S)
 {
     return S->running;
+}
+
+/*
+ * @function: start or start a coroutine again
+ * 
+ * @id: coroutine id
+ * 
+ * @notice: 
+ * 1、can't have a work coroutine running.
+ * 2、id must be valid
+ * 3、consider the first resume(READY) and the non-first resume(SUSPEND)
+*/
+int tswCo_resume(tswCo_schedule *S, int id)
+{
+    tswCo *C;
+
+    if (id < 0 || id >= S->cap) {
+        return TSW_ERR;
+    }
+    if (S->running != -1) {
+        tswWarn("S->running != -1");
+        return TSW_ERR;
+    }
+	C = S->co[id];
+    if (C == NULL) {
+        tswWarn("C == NULL");
+        return TSW_ERR;
+    }
+    if (C->status == TSW_CO_RUNING) {
+        tswWarn("don't resume co while running");
+        return TSW_ERR;
+    }
+
+	switch(C->status) {
+	case TSW_CO_READY:
+        coctx_get(&C->ctx);
+        C->ctx.stack.ss_sp = C->stack;
+		C->ctx.stack.ss_size = C->st_sz;
+		C->status = TSW_CO_RUNING;
+		S->running = id;
+        coctx_make(&C->ctx, (tswCo_mkctx_func)tswCo_entry, (uint32_t)(uintptr_t)S, (uint32_t)((uintptr_t)S>>32));
+        coctx_swap(&S->main, &C->ctx);
+		break;
+	case TSW_CO_SUSPEND:
+		S->running = id;
+		C->status = TSW_CO_RUNING;
+        // ... 
+		break;
+	}
+
+    return TSW_OK;
 }
