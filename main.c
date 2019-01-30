@@ -55,13 +55,20 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
-    while (tswCo_status(S, co1) && tswCo_status(S, co2)) {
+    while (1) {
         tswDebug("main coroutine");
-        tswCo_resume(S, co1);
+        if (tswCo_status(S, co1)) {
+            tswCo_resume(S, co1);
+        }
         tswDebug("main coroutine");
-        tswCo_resume(S, co2);
+        if (tswCo_status(S, co2)) {
+            tswCo_resume(S, co2);
+        }
+        if (tswCo_status(S, co1) == TSW_CO_DEAD && tswCo_status(S, co1) == TSW_CO_DEAD) {
+            break;
+        }
     }
-    
+
     tswDebug("main coroutine");
 
     tswCo_close(S);
