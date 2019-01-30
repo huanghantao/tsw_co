@@ -42,5 +42,7 @@ void tswCo_close(tswCo_schedule *S);
 int tswCo_new(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud);
 int tswCo_running(tswCo_schedule *S);
 int tswCo_resume(tswCo_schedule *S, int id);
+int tswCo_yield(tswCo_schedule *S);
+int tswCo_status(tswCo_schedule *S, int id);
 
 #endif /* TSW_COROUTINE_H_ */

@@ -228,9 +228,52 @@ int tswCo_resume(tswCo_schedule *S, int id)
     case TSW_CO_SUSPEND:
         S->running = id;
         C->status = TSW_CO_RUNING;
-        // ... 
+        coctx_swap(&S->main, &C->ctx);
         break;
     }
 
     return TSW_OK;
+}
+
+int tswCo_yield(tswCo_schedule *S)
+{
+    int id;
+    tswCo *C;
+    
+    id = S->running;
+    if (id < 0 || id >= S->cap) {
+        tswWarn("id < 0 || id >= S->cap");
+        return TSW_ERR;
+    }
+
+    C = S->co[id];
+    if (C == NULL) {
+        tswWarn("C == NULL");
+        return TSW_ERR;
+    }
+    if (C->status != TSW_CO_RUNING) {
+        tswWarn("C->status != TSW_CO_RUNING");
+        return TSW_ERR;
+    }
+    C->status = TSW_CO_SUSPEND;
+    S->running = -1;
+    coctx_swap(&C->ctx, &S->main);
+
+    return TSW_OK;
+}
+
+int tswCo_status(tswCo_schedule *S, int id)
+{
+    tswCo *C;
+
+    if (id < 0 || id >= S->cap) {
+        tswWarn("id >= 0 && id < S->cap");
+        return TSW_ERR;
+    }
+    C = S->co[id];
+    if (C == NULL) {
+        return TSW_CO_DEAD;
+    }
+        
+    return C->status;
 }
