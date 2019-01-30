@@ -2,20 +2,16 @@
 #include "log.h"
 #include "coroutine.h"
 
-struct args {
-    int n;
-};
-
 void func(tswCo_schedule *S, void *ud)
 {
-    struct args *arg;
+    int n;
+    int i;
 
-    arg = (struct args *)ud;
-    tswDebug("arg: %d", arg->n);
-    if (tswCo_yield(S) < 0) {
-        tswWarn("tswCo_yield error");
+    n = (int)(uintptr_t)ud;
+    for (i = 0; i < n; i++) {
+        tswDebug("coroutine [%d] is running", tswCo_running(S));
+        tswCo_yield(S);
     }
-    tswDebug("arg: %d", arg->n);
 }
 
 /*
@@ -25,8 +21,6 @@ int main(int argc, char const *argv[])
 {
     int co1;
     int co2;
-    struct args arg1;
-    struct args arg2;
     tswCo_schedule *S;
 
     S = tswCo_open();
@@ -35,41 +29,29 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
-    arg1.n = 1;
-    arg2.n = 2;
-
-    co1 = tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)&arg1);
-    co2 = tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)&arg2);
-
-    tswDebug("main coroutine");
+    co1 = tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)3);
+    co2 = tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)5);
 
     if (tswCo_resume(S, co1) < 0) {
         tswWarn("tswCo_resume error");
         return -1;
     }
-
-    tswDebug("main coroutine");
-
     if (tswCo_resume(S, co2) < 0) {
         tswWarn("tswCo_resume error");
         return -1;
     }
 
     while (1) {
-        tswDebug("main coroutine");
         if (tswCo_status(S, co1)) {
             tswCo_resume(S, co1);
         }
-        tswDebug("main coroutine");
         if (tswCo_status(S, co2)) {
             tswCo_resume(S, co2);
         }
-        if (tswCo_status(S, co1) == TSW_CO_DEAD && tswCo_status(S, co1) == TSW_CO_DEAD) {
+        if (tswCo_status(S, co1) == TSW_CO_DEAD && tswCo_status(S, co2) == TSW_CO_DEAD) {
             break;
         }
     }
-
-    tswDebug("main coroutine");
 
     tswCo_close(S);
     return 0;
