@@ -32,15 +32,6 @@ int main(int argc, char const *argv[])
     co1 = tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)3);
     co2 = tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)5);
 
-    if (tswCo_resume(S, co1) < 0) {
-        tswWarn("tswCo_resume error");
-        return -1;
-    }
-    if (tswCo_resume(S, co2) < 0) {
-        tswWarn("tswCo_resume error");
-        return -1;
-    }
-
     while (1) {
         if (tswCo_status(S, co1)) {
             tswCo_resume(S, co1);
