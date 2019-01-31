@@ -131,7 +131,6 @@ void tswCo_close(tswCo_schedule *S)
 }
 
 /*
- *
  * @st_sz: the stack size that this coroutine can use
  * @func: the task that this coroutine run
  * @ud: parameters required for task execution
@@ -174,6 +173,26 @@ int tswCo_new(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud)
     S->co[id] = C;
 
     return id;
+}
+
+/*
+ * tswCo_new and tswCo_resume
+*/
+int tswCo_create(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud)
+{
+    int co;
+
+    co = tswCo_new(S, st_sz, func, ud);
+    if (co < 0) {
+        tswWarn("tswCo_new error");
+        return TSW_ERR;
+    }
+    if (tswCo_resume(S, co) < 0) {
+        tswWarn("tswCo_resume error");
+        return TSW_ERR;
+    }
+
+    return co;
 }
 
 /*

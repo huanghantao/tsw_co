@@ -21,6 +21,8 @@ int main(int argc, char const *argv[])
 {
     int co1;
     int co2;
+    int co3;
+    int co4;
     tswCo_schedule *S;
 
     S = tswCo_open();
@@ -29,8 +31,11 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
-    co1 = tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)3);
-    co2 = tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)5);
+    co1 = tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)1);
+    co2 = tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)2);
+
+    co3 = tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)3);
+    co4 = tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)4);
 
     while (1) {
         if (tswCo_status(S, co1)) {
@@ -38,6 +43,12 @@ int main(int argc, char const *argv[])
         }
         if (tswCo_status(S, co2)) {
             tswCo_resume(S, co2);
+        }
+        if (tswCo_status(S, co3)) {
+            tswCo_resume(S, co3);
+        }
+        if (tswCo_status(S, co4)) {
+            tswCo_resume(S, co4);
         }
         if (tswCo_status(S, co1) == TSW_CO_DEAD && tswCo_status(S, co2) == TSW_CO_DEAD) {
             break;

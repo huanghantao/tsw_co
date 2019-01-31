@@ -40,6 +40,7 @@ struct tswCo {
 tswCo_schedule* tswCo_open();
 void tswCo_close(tswCo_schedule *S);
 int tswCo_new(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud);
+int tswCo_create(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud);
 int tswCo_running(tswCo_schedule *S);
 int tswCo_resume(tswCo_schedule *S, int id);
 int tswCo_yield(tswCo_schedule *S);
