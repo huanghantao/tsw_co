@@ -19,10 +19,10 @@ void func(tswCo_schedule *S, void *ud)
 */
 int main(int argc, char const *argv[])
 {
+    int co0;
     int co1;
     int co2;
     int co3;
-    int co4;
     tswCo_schedule *S;
 
     S = tswCo_open();
@@ -31,13 +31,16 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
+    co0 = tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)0);
     co1 = tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)1);
-    co2 = tswCo_new(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)2);
 
+    co2 = tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)2);
     co3 = tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)3);
-    co4 = tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)4);
 
-    while (1) {
+    do {
+        if (tswCo_status(S, co0)) {
+            tswCo_resume(S, co0);
+        }
         if (tswCo_status(S, co1)) {
             tswCo_resume(S, co1);
         }
@@ -47,13 +50,7 @@ int main(int argc, char const *argv[])
         if (tswCo_status(S, co3)) {
             tswCo_resume(S, co3);
         }
-        if (tswCo_status(S, co4)) {
-            tswCo_resume(S, co4);
-        }
-        if (tswCo_status(S, co1) == TSW_CO_DEAD && tswCo_status(S, co2) == TSW_CO_DEAD) {
-            break;
-        }
-    }
+    } while (!(tswCo_status(S, co0) == TSW_CO_DEAD && tswCo_status(S, co1) == TSW_CO_DEAD));
 
     tswCo_close(S);
     return 0;
