@@ -3,11 +3,16 @@
 #include "coroutine.h"
 #include "coctx.h"
 #include "log.h"
+#include "epoll.h"
 
 static inline void tswCo_delete(tswCo *C);
 static tswCo *new_tswCo(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud);
 static int tswCo_cap_check(tswCo_schedule *S);
 static void tswCo_entry(uintptr_t low, uintptr_t high);
+
+void tswCo_init_mpoll(tswCo_schedule *S);
+void tswCo_release_mpoll(tswCo_schedule *S);
+int tswCo_poll(tswCo_schedule *S);
 
 static tswCo *new_tswCo(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud)
 {
@@ -98,6 +103,8 @@ tswCo_schedule* tswCo_open()
     S->cap = TSW_CO_DEFAULT_NUM;
     S->nco = 0;
     S->running = -1;
+    htimer_mgr_init(&S->timer_mgr);
+    tswCo_init_mpoll(S);
     S->co = malloc(sizeof(tswCo *) * S->cap);
     if (S->co == NULL) {
         tswWarn("malloc error");
@@ -106,6 +113,31 @@ tswCo_schedule* tswCo_open()
     }
     memset(S->co, 0, sizeof(tswCo *) * S->cap);
     return S;
+}
+
+static void timer_cb(htimer_t *handler)
+{
+    struct timer_handler *pth = (struct timer_handler *)handler;
+    tswCo_resume(pth->S, pth->id);
+}
+
+void tswCo_sleep(tswCo_schedule *S, int ms)
+{
+    int id = S->running;
+    struct timer_handler th;
+    th.S = S;
+    th.id = id;
+    htimer_init(&S->timer_mgr, &th.timer);
+    htimer_start(&th.timer, timer_cb, ms, 0);
+    tswCo_yield(S);
+}
+
+int tswCo_run(tswCo_schedule *S, int flag)
+{
+    do {
+        tswCo_poll(S);
+    } while(1);
+    return 0;
 }
 
 /*
@@ -126,6 +158,7 @@ void tswCo_close(tswCo_schedule *S)
 
     free(S->co);
     S->co = NULL;
+    tswCo_release_mpoll(S);
     free(S);
     S = NULL;
 }
@@ -295,4 +328,14 @@ int tswCo_status(tswCo_schedule *S, int id)
     }
         
     return C->status;
+}
+
+htimer_mgr_t *tswCo_get_timer_mgr(tswCo_schedule *S)
+{
+    return &S->timer_mgr;
+}
+
+struct poll *tswCo_get_poll(tswCo_schedule *S)
+{
+    return &S->m_poll;
 }

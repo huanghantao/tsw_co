@@ -3,6 +3,7 @@
 
 
 #include "coctx.h"
+#include "htimer.h"
 
 enum {
     TSW_CO_DEAD = 0,
@@ -16,16 +17,32 @@ enum {
 
 typedef struct tswCo_schedule tswCo_schedule;
 typedef struct tswCo tswCo;
+typedef struct timer_handler timer_handler;
 typedef void (*tswCo_func)(tswCo_schedule *S, void *ud);
 typedef void (*tswCo_mkctx_func)();
 
+struct poll {
+    int epollfd;
+    int ncap;
+    int nevents;
+    void *events;
+};
+
+struct timer_handler {
+    htimer_t timer;
+    tswCo_schedule *S;
+    int id;
+};
+
 struct tswCo_schedule {
     tswCoCtx main;
+    htimer_mgr_t timer_mgr;
     int dst_sz;
     int running;
     int nco;
     int cap;
     tswCo **co;
+    struct poll m_poll;
 };
 
 struct tswCo {
@@ -38,6 +55,8 @@ struct tswCo {
 };
 
 tswCo_schedule* tswCo_open();
+void tswCo_sleep(tswCo_schedule *S, int ms);
+int tswCo_run(tswCo_schedule *S, int flag);
 void tswCo_close(tswCo_schedule *S);
 int tswCo_new(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud);
 int tswCo_create(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud);
