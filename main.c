@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "log.h"
 #include "coroutine.h"
+#include "htimer.h"
 
 void func(tswCo_schedule *S, void *ud)
 {
@@ -14,10 +16,7 @@ void func(tswCo_schedule *S, void *ud)
     }
 }
 
-/*
- * main coroutine
-*/
-int main(int argc, char const *argv[])
+int test1()
 {
     int co0;
     int co1;
@@ -53,5 +52,15 @@ int main(int argc, char const *argv[])
     } while (!(tswCo_status(S, co0) == TSW_CO_DEAD && tswCo_status(S, co1) == TSW_CO_DEAD));
 
     tswCo_close(S);
+    return 0;
+}
+
+/*
+ * main coroutine
+*/
+int main(int argc, char const *argv[])
+{
+    test1();
+    
     return 0;
 }
