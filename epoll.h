@@ -5,9 +5,23 @@
 #include "htimer.h"
 #include "coroutine.h"
 
+enum {
+    TSW_FD_WRITE = 0,
+    TSW_FD_READ = 1,
+};
+
 struct htimer_mgr_s;
 struct htimer_mgr_s *tswCo_get_timer_mgr(tswCo_schedule *S);
 struct poll *tswCo_get_poll(tswCo_schedule *S);
+
+static uint64_t touint64(int fd, int id)
+{
+    uint64_t ret = 0;
+    ret |= ((uint64_t)fd) << 32;
+    ret |= ((uint64_t)id);
+
+    return ret;
+}
 
 static void tswCo_init_mpoll(tswCo_schedule *S)
 {
@@ -66,4 +80,43 @@ static int tswCo_poll(tswCo_schedule *S)
     }
 
     return 0;
+}
+
+int tswCo_wait(tswCo_schedule *S, int fd, int flag)
+{
+    int id;
+    struct poll *m_poll;
+    struct epoll_event ev;
+    struct epoll_event *new_events;
+
+    id = tswCo_running(S);
+    if (id < 0) {
+        tswWarn("no coroutine is running");
+        return TSW_ERR;
+    }
+    m_poll = tswCo_get_poll(S);
+
+    if (flag != TSW_FD_READ && flag != TSW_FD_WRITE) {
+        tswWarn("flag type is error");
+        return TSW_ERR;
+    }
+
+    if (m_poll->nevents + 1 > m_poll->ncap) {
+        new_events = realloc(m_poll->events, m_poll->ncap * 2);
+        if (new_events != NULL) {
+            m_poll->events = new_events;
+            m_poll->ncap *= 2;
+        }
+    }
+
+    ev.events = flag == TSW_FD_READ ? EPOLLIN : EPOLLOUT;
+    ev.data.u64 = touint64(fd, id);
+
+    if (epoll_ctl(m_poll->epollfd, EPOLL_CTL_ADD, fd, &ev) < 0) {
+        return TSW_ERR;
+    }
+    m_poll->nevents++;
+    tswCo_yield(S);
+
+    return TSW_OK;
 }
