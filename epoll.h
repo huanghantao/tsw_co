@@ -12,7 +12,9 @@ struct poll *tswCo_get_poll(tswCo_schedule *S);
 static void tswCo_init_mpoll(tswCo_schedule *S)
 {
     size_t sz;
-    struct poll *m_poll = tswCo_get_poll(S);
+    struct poll *m_poll;
+
+    m_poll = tswCo_get_poll(S);
     /* epoll_create(n), n is unused scince Linux 2.6.8*/
     m_poll->epollfd = epoll_create(32000);
     m_poll->ncap = 16;
@@ -25,7 +27,9 @@ static void tswCo_init_mpoll(tswCo_schedule *S)
 
 static void tswCo_release_mpoll(tswCo_schedule *S)
 {
-    struct poll *m_poll = tswCo_get_poll(S);
+    struct poll *m_poll;
+
+    m_poll = tswCo_get_poll(S);
     free(m_poll->events);
     m_poll->events = NULL;
     m_poll->nevents = 0;
@@ -35,11 +39,17 @@ static void tswCo_release_mpoll(tswCo_schedule *S)
 static int tswCo_poll(tswCo_schedule *S)
 {
     int n;
-    struct poll *m_poll = tswCo_get_poll(S);
-    struct epoll_event *events = m_poll->events;
-    int epollfd = m_poll->epollfd;
-    struct htimer_mgr_s *timer_mgr = tswCo_get_timer_mgr(S);
-    int next = htimer_next_timeout(timer_mgr);
+    struct poll *m_poll;
+    struct epoll_event *events;
+    int epollfd;
+    struct htimer_mgr_s *timer_mgr;
+    int next;
+
+    m_poll = tswCo_get_poll(S);
+    events = m_poll->events;
+    epollfd = m_poll->epollfd;
+    timer_mgr = tswCo_get_timer_mgr(S);
+    next = htimer_next_timeout(timer_mgr);
 
     if (next < 0)
         next = 1000;

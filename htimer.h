@@ -9,9 +9,9 @@ extern "C" {
 #include <stdint.h>
 
 enum timer_flag_t{
-	HTIMER_ACTIVE = 1,
-	HTIMER_CLOSING = 2,
-	HTIMER_CLOSED = 4,
+    HTIMER_ACTIVE = 1,
+    HTIMER_CLOSING = 2,
+    HTIMER_CLOSED = 4,
 };
 
 
@@ -22,12 +22,12 @@ enum timer_flag_t{
   (((h)->flags & (HTIMER_CLOSING |  HTIMER_CLOSED)) != 0)
 
 struct htimer_mgr_s {
-	struct {
-		void* min;
-		unsigned int nelts;
-	} timer_heap;
-	uint64_t timer_counter;
-	uint64_t time;
+    struct {
+        void* min;
+        unsigned int nelts;
+    } timer_heap;
+    uint64_t timer_counter;
+    uint64_t time;
 };
 typedef struct htimer_mgr_s htimer_mgr_t;
 
@@ -37,13 +37,13 @@ typedef struct htimer_s htimer_t;
 typedef void(*timer_cb_t)(htimer_t *handler);
 
 struct htimer_s {
-	void* heap_node[3];
-	htimer_mgr_t *mgr;
-	uint32_t flags;
-	uint64_t timeout;
-	uint64_t repeat;
-	uint64_t start_id;
-	timer_cb_t timer_cb;
+    void* heap_node[3];
+    htimer_mgr_t *mgr;
+    uint32_t flags;
+    uint64_t timeout;
+    uint64_t repeat;
+    uint64_t start_id;
+    timer_cb_t timer_cb;
 };
 
 int htimer_init(htimer_mgr_t * mgr, htimer_t * handle);
