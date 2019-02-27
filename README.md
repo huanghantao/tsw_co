@@ -129,3 +129,59 @@ int main(int argc, char const *argv[])
 
 ```
 
+### example3
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include "log.h"
+#include "coroutine.h"
+#include "htimer.h"
+#include "fd.h"
+
+#define MAX_BUF_SIZE 1024
+#define MAX_FILENAME_LEN 20
+
+struct args {
+    char filename[MAX_FILENAME_LEN + 1];
+    char buf[MAX_BUF_SIZE];
+    int n;
+};
+
+void func(tswCo_schedule *S, void *ud)
+{
+    struct args *arg = (struct args *)ud;
+    int fd;
+
+    fd = open(arg->filename, O_RDWR);
+    tswCo_write(S, fd, arg->buf, arg->n);
+}
+
+/*
+ * main coroutine
+*/
+int main(int argc, char const *argv[])
+{
+    tswCo_schedule *S;
+    struct args arg1 = {"test1.txt", "aaaaaaaaaa", 10};
+    struct args arg2 = {"test2.txt", "bbbbbbbbbb", 10};
+
+    S = tswCo_open();
+    if (S == NULL) {
+        tswWarn("tswCo_open error");
+        return -1;
+    }
+
+    tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, func, &arg1);
+    tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, func, &arg2);
+
+    tswCo_run(S, 0);
+    
+    return 0;
+}
+
+```
+
