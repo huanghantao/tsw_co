@@ -62,18 +62,19 @@ int tswCo_poll(tswCo_schedule *S)
     int start_time;
     int end_time;
 
+    if (tswCo_running(S) >= 0) {
+        tswWarn("tswCo_running(S) >= 0");
+        return TSW_ERR;
+    }
+
     tsw_poll = tswCo_get_poll(S);
     events = tsw_poll->events;
     epollfd = tsw_poll->epollfd;
     timer_mgr = tswCo_get_timer_mgr(S);
     next = htimer_next_timeout(timer_mgr);
 
-    if (next < 0)
+    if (next < 0) {
         next = 1000;
-
-    if (tswCo_running(S) >= 0) {
-        tswWarn("tswCo_running(S) >= 0");
-        return TSW_ERR;
     }
 
     start_time = htimer_get_ms_time();
