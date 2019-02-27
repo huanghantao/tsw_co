@@ -185,3 +185,49 @@ int main(int argc, char const *argv[])
 
 ```
 
+### example4
+
+```c
+#include "log.h"
+#include "coroutine.h"
+
+void func3(tswCo_schedule *S, void *ud)
+{
+    tswDebug("coroutine [%d] is running", tswCo_running(S));
+}
+
+void func2(tswCo_schedule *S, void *ud)
+{
+    tswDebug("coroutine [%d] is running", tswCo_running(S));
+    tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, func3, ud);
+    tswDebug("coroutine [%d] is running", tswCo_running(S));
+}
+
+void func1(tswCo_schedule *S, void *ud)
+{
+    tswDebug("coroutine [%d] is running", tswCo_running(S));
+    tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, func2, ud);
+    tswDebug("coroutine [%d] is running", tswCo_running(S));
+}
+
+/*
+ * main coroutine
+*/
+int main(int argc, char const *argv[])
+{
+    tswCo_schedule *S;
+
+    S = tswCo_open();
+    if (S == NULL) {
+        tswWarn("tswCo_open error");
+        return -1;
+    }
+
+    tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, func1, (void *)(uintptr_t)1);
+
+    tswCo_close(S);
+
+    return 0;
+}
+```
+
