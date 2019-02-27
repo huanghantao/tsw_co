@@ -39,7 +39,7 @@ ssize_t tswCo_read(tswCo_schedule *S, int fd, void *buf, size_t count)
         tswWarn("%s", strerror(errno));
         return TSW_ERR;
     }
-    if (!(flags & O_NONBLOCK)) {
+    if (!(flags & O_NONBLOCK)) { // if is not NONBLOCK
         if (tswCo_setnonblock(fd) < 0) {
             tswWarn("tswCo_setnonblock error");
             return TSW_ERR;
@@ -74,7 +74,7 @@ ssize_t tswCo_write(tswCo_schedule *S, int fd, const void *buf, size_t count)
         tswWarn("%s", strerror(errno));
         return TSW_ERR;
     }
-    if (!(flags & O_NONBLOCK)) {
+    if (!(flags & O_NONBLOCK)) { // if is not NONBLOCK
         if (tswCo_setnonblock(fd) < 0) {
             tswWarn("tswCo_setnonblock error");
             return TSW_ERR;
