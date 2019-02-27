@@ -7,7 +7,6 @@
 #include <errno.h>
 #include "log.h"
 #include "coroutine.h"
-#include "htimer.h"
 #include "socket.h"
 #include "net.h"
 
