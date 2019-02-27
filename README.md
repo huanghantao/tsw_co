@@ -1,3 +1,7 @@
+## Description
+
+You can write synchronous code to achieve asynchronous effects! Enjoy it!
+
 ## Environment
 
 ```shell
