@@ -70,6 +70,7 @@ static void tswCo_entry(uintptr_t low, uintptr_t high)
     tswCo *C;
     tswCoCtx tmp;
     tswCo_schedule *S;
+    int call_depth;
 
     p = (uintptr_t)low | ((uintptr_t) high << 32);
     S = (tswCo_schedule *)p;
@@ -78,9 +79,11 @@ static void tswCo_entry(uintptr_t low, uintptr_t high)
     C = S->co[id];
     C->func(S, C->ud);
     C->status = TSW_CO_DEAD;
-    S->running = -1;
+    call_depth = S->co_call_depth;
+    S->running = S->env[call_depth].co_id;
+    S->co_call_depth--;
     S->nco--;
-    coctx_swap(&tmp, &S->main);
+    coctx_swap(&tmp, &(S->env[call_depth].ctx));
 }
 
 /*
@@ -97,6 +100,8 @@ tswCo_schedule* tswCo_open()
     }
     S->dst_sz = TSW_CO_DEFAULT_ST_SZ;
     S->cap = TSW_CO_DEFAULT_NUM;
+    S->env = (tswCoCtx_env *)malloc(sizeof(tswCoCtx_env) * TSW_CO_CALL_DEPTH);
+    S->co_call_depth = -1;
     S->nco = 0;
     S->running = -1;
     htimer_mgr_init(&S->timer_mgr);
@@ -245,14 +250,16 @@ int tswCo_running(tswCo_schedule *S)
 int tswCo_resume(tswCo_schedule *S, int id)
 {
     tswCo *C;
+    int call_depth;
 
     if (id < 0 || id >= S->cap) {
         return TSW_ERR;
     }
-    if (S->running != -1) {
+    if (S->co_call_depth == -1 && S->running != -1) {
         tswWarn("S->running != -1");
         return TSW_ERR;
     }
+    
     C = S->co[id];
     if (C == NULL) {
         tswWarn("C == NULL");
@@ -269,14 +276,26 @@ int tswCo_resume(tswCo_schedule *S, int id)
         C->ctx.stack.ss_sp = C->stack;
         C->ctx.stack.ss_size = C->st_sz;
         C->status = TSW_CO_RUNING;
+        if (S->co_call_depth + 1 >= TSW_CO_CALL_DEPTH) {
+            tswWarn("coroutine call is too deep");
+            return TSW_ERR;
+        }
+        call_depth = ++(S->co_call_depth);
+        S->env[call_depth].co_id = S->running;
         S->running = id;
         coctx_make(&C->ctx, (tswCo_mkctx_func)tswCo_entry, (uint32_t)(uintptr_t)S, (uint32_t)((uintptr_t)S>>32));
-        coctx_swap(&S->main, &C->ctx);
+        coctx_swap(&(S->env[call_depth].ctx), &C->ctx);
         break;
     case TSW_CO_SUSPEND:
         S->running = id;
         C->status = TSW_CO_RUNING;
-        coctx_swap(&S->main, &C->ctx);
+        if (S->co_call_depth + 1 >= TSW_CO_CALL_DEPTH) {
+            tswWarn("coroutine call is too deep");
+            return TSW_ERR;
+        }
+        call_depth = ++(S->co_call_depth);
+        S->env[call_depth].co_id = id;
+        coctx_swap(&(S->env[call_depth].ctx), &C->ctx);
         break;
     }
 
@@ -286,6 +305,7 @@ int tswCo_resume(tswCo_schedule *S, int id)
 int tswCo_yield(tswCo_schedule *S)
 {
     int id;
+    int call_depth;
     tswCo *C;
     
     id = S->running;
@@ -304,8 +324,10 @@ int tswCo_yield(tswCo_schedule *S)
         return TSW_ERR;
     }
     C->status = TSW_CO_SUSPEND;
-    S->running = -1;
-    coctx_swap(&C->ctx, &S->main);
+    call_depth = S->co_call_depth;
+    S->running = S->env[call_depth].co_id;
+    S->co_call_depth--;
+    coctx_swap(&C->ctx, &(S->env[call_depth].ctx));
 
     return TSW_OK;
 }

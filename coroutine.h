@@ -14,9 +14,11 @@ enum {
 
 #define TSW_CO_DEFAULT_ST_SZ 2*1024*1024
 #define TSW_CO_DEFAULT_NUM 16
+#define TSW_CO_CALL_DEPTH 16
 
 typedef struct tswCo_schedule tswCo_schedule;
 typedef struct tswCo tswCo;
+typedef struct tswCoCtx_env tswCoCtx_env;
 typedef struct timer_handler timer_handler;
 typedef void (*tswCo_func)(tswCo_schedule *S, void *ud);
 typedef void (*tswCo_mkctx_func)();
@@ -34,8 +36,14 @@ struct timer_handler {
     int id;
 };
 
+struct tswCoCtx_env {
+    tswCoCtx ctx;
+    int co_id;
+};
+
 struct tswCo_schedule {
-    tswCoCtx main;
+    tswCoCtx_env *env;
+    int co_call_depth;
     htimer_mgr_t timer_mgr;
     int dst_sz;
     int running;
