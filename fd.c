@@ -7,7 +7,9 @@
 #include "coroutine.h"
 #include "epoll.h"
 
-int tswCo_setnonblock(int fd)
+static int tswCo_setnonblock(int fd);
+
+static int tswCo_setnonblock(int fd)
 {
     int flags;
 
@@ -52,7 +54,7 @@ ssize_t tswCo_read(tswCo_schedule *S, int fd, void *buf, size_t count)
     return TSW_OK;
 }
 
-ssize_t tswCo_write(int fd, const void *buf, size_t count)
+ssize_t tswCo_write(tswCo_schedule *S, int fd, const void *buf, size_t count)
 {
     int flags;
 
