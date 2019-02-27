@@ -255,10 +255,6 @@ int tswCo_resume(tswCo_schedule *S, int id)
     if (id < 0 || id >= S->cap) {
         return TSW_ERR;
     }
-    if (S->co_call_depth == -1 && S->running != -1) {
-        tswWarn("S->running != -1");
-        return TSW_ERR;
-    }
     
     C = S->co[id];
     if (C == NULL) {

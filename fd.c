@@ -31,8 +31,6 @@ ssize_t tswCo_read(tswCo_schedule *S, int fd, void *buf, size_t count)
 {
     int flags;
     int n = 0;
-    int total = 0;
-    int remain = count;
 
     flags = fcntl(fd, F_GETFL, 0);
     if (flags < 0) {
@@ -46,20 +44,14 @@ ssize_t tswCo_read(tswCo_schedule *S, int fd, void *buf, size_t count)
         }
     }
 
-    do {
-        remain -= n;
-        n = read(fd, buf + total, remain);
-        if (n < 0 && errno == EAGAIN) {
-            if (tswCo_wait(S, fd, TSW_FD_WRITE) < 0) {
-                tswWarn("tswCo_wait error");
-                return TSW_ERR;
-            }
-            n = 0;
+    while ((n = read(fd, buf, count)) < 0 && errno == EAGAIN) {
+        if (tswCo_wait(S, fd, TSW_FD_READ) < 0) {
+            tswWarn("tswCo_wait error");
+            return TSW_ERR;
         }
-        total += n;
-    } while (total < count);
+    }
 
-    return count;
+    return n;
 }
 
 ssize_t tswCo_write(tswCo_schedule *S, int fd, const void *buf, size_t count)
@@ -67,7 +59,6 @@ ssize_t tswCo_write(tswCo_schedule *S, int fd, const void *buf, size_t count)
     int flags;
     int n = 0;
     int total = 0;
-    int remain = count;
 
     flags = fcntl(fd, F_GETFL, 0);
     if (flags < 0) {
@@ -81,18 +72,20 @@ ssize_t tswCo_write(tswCo_schedule *S, int fd, const void *buf, size_t count)
         }
     }
 
-    do {
-        remain -= n;
-        n = write(fd, buf + total, remain);
-        if (n < 0 && errno == EAGAIN) {
-            if (tswCo_wait(S, fd, TSW_FD_WRITE) < 0) {
+    for (total = 0; total < count; total += n) {
+        while ((n = write(fd, (char *)buf + total, count - total)) < 0 && errno == EAGAIN) {
+            if (tswCo_wait(S, fd, TSW_FD_READ) < 0) {
                 tswWarn("tswCo_wait error");
                 return TSW_ERR;
             }
-            n = 0;
         }
-        total += n;
-    } while (total < count);
+        if (n < 0) {
+            return n;
+        }
+        if (n == 0) {
+            break;
+        }
+    }
 
-    return count;
+    return total;
 }

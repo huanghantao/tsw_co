@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <string.h>
+#include <errno.h>
 #include "epoll.h"
 #include "htimer.h"
 #include "coroutine.h"
@@ -59,13 +60,6 @@ int tswCo_poll(tswCo_schedule *S)
     int epollfd;
     struct htimer_mgr_s *timer_mgr;
     int next;
-    int start_time;
-    int end_time;
-
-    if (tswCo_running(S) >= 0) {
-        tswWarn("tswCo_running(S) >= 0");
-        return TSW_ERR;
-    }
 
     tsw_poll = tswCo_get_poll(S);
     events = tsw_poll->events;
@@ -77,17 +71,10 @@ int tswCo_poll(tswCo_schedule *S)
         next = 1000;
     }
 
-    start_time = htimer_get_ms_time();
     n = epoll_wait(epollfd, events, tsw_poll->ncap, next);
-    end_time = htimer_get_ms_time();
     htimer_perform(timer_mgr);
     if (n <= 0) {
         return 0;
-    }
-
-    if (n > 0) {
-        htimer_t *handle = htimer_get_min_timer(timer_mgr);
-        htimer_modify_timeout(handle, end_time - start_time);
     }
 
     for (i = 0; i < n; i++) {
@@ -97,10 +84,6 @@ int tswCo_poll(tswCo_schedule *S)
         uint64_t u64 = p->data.u64;
 
         fromuint64(u64, &fd, &id);
-        if (epoll_ctl(tsw_poll->epollfd, EPOLL_CTL_DEL, fd, p) == -1) {
-            tswWarn("%s", strerror(errno));
-            return TSW_ERR;
-        }
         tsw_poll->nevents--;
         tswCo_resume(S, id);
     }
@@ -139,7 +122,10 @@ int tswCo_wait(tswCo_schedule *S, int fd, int flag)
     ev.data.u64 = touint64(fd, id);
 
     if (epoll_ctl(m_poll->epollfd, EPOLL_CTL_ADD, fd, &ev) < 0) {
-        return TSW_ERR;
+        if (errno != EEXIST) {
+            tswWarn("%s", strerror(errno));
+            return TSW_ERR;
+        }
     }
     m_poll->nevents++;
     tswCo_yield(S);

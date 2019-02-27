@@ -33,9 +33,14 @@ int tswCo_accept(tswCo_schedule *S, int sockfd, struct sockaddr *addr, socklen_t
     struct sockaddr_in sa;
     socklen_t len;
 
+    if (tswCo_setnonblock(sockfd) < 0) {
+        tswWarn("tswCo_setnonblock error");
+        return TSW_ERR;
+    }
+
     len = sizeof(sa);
-	if((connfd = accept(sockfd, (void*)&sa, &len)) < 0) {
-        if (connfd == EAGAIN) {
+    while ((connfd = accept(sockfd, (void*)&sa, &len)) < 0) {
+        if (errno == EAGAIN) {
             if (tswCo_wait(S, sockfd, TSW_FD_READ) < 0) {
                 tswWarn("tswCo_wait error");
                 return TSW_ERR;
@@ -44,7 +49,7 @@ int tswCo_accept(tswCo_schedule *S, int sockfd, struct sockaddr *addr, socklen_t
             tswWarn("%s", strerror(errno));
             return TSW_ERR;
         }
-	}
+    }
 
     return connfd;
 }
@@ -53,8 +58,6 @@ ssize_t tswCo_recv(tswCo_schedule *S, int connfd, void *buf, size_t len, int fla
 {
     int connfd_flags;
     int n = 0;
-    int total = 0;
-    int remain = len;
 
     connfd_flags = fcntl(connfd, F_GETFL, 0);
     if (connfd_flags < 0) {
@@ -68,20 +71,14 @@ ssize_t tswCo_recv(tswCo_schedule *S, int connfd, void *buf, size_t len, int fla
         }
     }
 
-    do {
-        remain -= n;
-        n = recv(connfd, buf + total, remain, flags);
-        if (n < 0 && errno == EAGAIN) {
-            if (tswCo_wait(S, connfd, TSW_FD_WRITE) < 0) {
-                tswWarn("tswCo_wait error");
-                return TSW_ERR;
-            }
-            n = 0;
+    while ((n = recv(connfd, buf, len, flags)) < 0 && errno == EAGAIN) {
+        if (tswCo_wait(S, connfd, TSW_FD_READ) < 0) {
+            tswWarn("tswCo_wait error");
+            return TSW_ERR;
         }
-        total += n;
-    } while (total < len);
+    }
 
-    return len;
+    return n;
 }
 
 ssize_t tswCo_send(tswCo_schedule *S, int connfd, void *buf, size_t len, int flags)
@@ -89,7 +86,6 @@ ssize_t tswCo_send(tswCo_schedule *S, int connfd, void *buf, size_t len, int fla
     int connfd_flags;
     int n = 0;
     int total = 0;
-    int remain = len;
 
     connfd_flags = fcntl(connfd, F_GETFL, 0);
     if (connfd_flags < 0) {
@@ -103,18 +99,20 @@ ssize_t tswCo_send(tswCo_schedule *S, int connfd, void *buf, size_t len, int fla
         }
     }
 
-    do {
-        remain -= n;
-        n = send(connfd, buf + total, remain, flags);
-        if (n < 0 && errno == EAGAIN) {
-            if (tswCo_wait(S, connfd, TSW_FD_WRITE) < 0) {
+    for (total = 0; total < len; total += n) {
+        while ((n = send(connfd, (char *)buf + total, len - total, flags)) < 0 && errno == EAGAIN) {
+            if (tswCo_wait(S, connfd, TSW_FD_READ) < 0) {
                 tswWarn("tswCo_wait error");
                 return TSW_ERR;
             }
-            n = 0;
         }
-        total += n;
-    } while (total < len);
+        if (n < 0) {
+            return n;
+        }
+        if (n == 0) {
+            break;
+        }
+    }
 
-    return len;
+    return total;
 }
