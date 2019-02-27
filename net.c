@@ -10,8 +10,8 @@
 int tswCo_accept(tswCo_schedule *S, int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
     int connfd;
-	struct sockaddr_in sa;
-	socklen_t len;
+    struct sockaddr_in sa;
+    socklen_t len;
 
     len = sizeof(sa);
 	if((connfd = accept(sockfd, (void*)&sa, &len)) < 0) {
