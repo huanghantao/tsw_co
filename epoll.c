@@ -1,9 +1,12 @@
+#include <errno.h>
+#include <string.h>
 #include "epoll.h"
 #include "htimer.h"
 #include "coroutine.h"
 #include "log.h"
 
 static uint64_t touint64(int fd, int id);
+static void fromuint64(uint64_t v, int *fd, int *id);
 
 static uint64_t touint64(int fd, int id)
 {
@@ -14,45 +17,52 @@ static uint64_t touint64(int fd, int id)
     return ret;
 }
 
+static void fromuint64(uint64_t v, int *fd, int *id)
+{
+    *fd = (int)(v >> 32);
+    *id = (int)(v & 0xffffffff);
+}
+
 void tswCo_init_poll(tswCo_schedule *S)
 {
     size_t sz;
-    struct poll *m_poll;
+    struct poll *tsw_poll;
 
-    m_poll = tswCo_get_poll(S);
+    tsw_poll = tswCo_get_poll(S);
     /* epoll_create(n), n is unused scince Linux 2.6.8*/
-    m_poll->epollfd = epoll_create(32000);
-    m_poll->ncap = 16;
-    m_poll->nevents = 0;
+    tsw_poll->epollfd = epoll_create(32000);
+    tsw_poll->ncap = 16;
+    tsw_poll->nevents = 0;
 
-    sz = sizeof(struct epoll_event) * m_poll->ncap;
-    m_poll->events = malloc(sz);
-    memset(m_poll->events, 0, sz);
+    sz = sizeof(struct epoll_event) * tsw_poll->ncap;
+    tsw_poll->events = malloc(sz);
+    memset(tsw_poll->events, 0, sz);
 }
 
 void tswCo_release_poll(tswCo_schedule *S)
 {
-    struct poll *m_poll;
+    struct poll *tsw_poll;
 
-    m_poll = tswCo_get_poll(S);
-    free(m_poll->events);
-    m_poll->events = NULL;
-    m_poll->nevents = 0;
-    m_poll->ncap = 0;
+    tsw_poll = tswCo_get_poll(S);
+    free(tsw_poll->events);
+    tsw_poll->events = NULL;
+    tsw_poll->nevents = 0;
+    tsw_poll->ncap = 0;
 }
 
 int tswCo_poll(tswCo_schedule *S)
 {
     int n;
-    struct poll *m_poll;
+    int i;
+    struct poll *tsw_poll;
     struct epoll_event *events;
     int epollfd;
     struct htimer_mgr_s *timer_mgr;
     int next;
 
-    m_poll = tswCo_get_poll(S);
-    events = m_poll->events;
-    epollfd = m_poll->epollfd;
+    tsw_poll = tswCo_get_poll(S);
+    events = tsw_poll->events;
+    epollfd = tsw_poll->epollfd;
     timer_mgr = tswCo_get_timer_mgr(S);
     next = htimer_next_timeout(timer_mgr);
 
@@ -64,13 +74,28 @@ int tswCo_poll(tswCo_schedule *S)
         return TSW_ERR;
     }
 
-    n = epoll_wait(epollfd, events, m_poll->ncap, next);
+    n = epoll_wait(epollfd, events, tsw_poll->ncap, next);
     htimer_perform(timer_mgr);
     if (n <= 0) {
         return 0;
     }
 
-    return 0;
+    for (i = 0; i < n; i++) {
+        int fd;
+        int id;
+        struct epoll_event *p = &events[i];
+        uint64_t u64 = p->data.u64;
+
+        fromuint64(u64, &fd, &id);
+        if (epoll_ctl(tsw_poll->epollfd, EPOLL_CTL_DEL, fd, p) == -1) {
+            tswWarn("%s", strerror(errno));
+            return TSW_ERR;
+        }
+        tsw_poll->nevents--;
+        tswCo_resume(S, id);
+    }
+
+    return TSW_OK;
 }
 
 int tswCo_wait(tswCo_schedule *S, int fd, int flag)
