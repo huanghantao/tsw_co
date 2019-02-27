@@ -10,10 +10,6 @@ static tswCo *new_tswCo(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud)
 static int tswCo_cap_check(tswCo_schedule *S);
 static void tswCo_entry(uintptr_t low, uintptr_t high);
 
-void tswCo_init_mpoll(tswCo_schedule *S);
-void tswCo_release_mpoll(tswCo_schedule *S);
-int tswCo_poll(tswCo_schedule *S);
-
 static tswCo *new_tswCo(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud)
 {
     tswCo *C;

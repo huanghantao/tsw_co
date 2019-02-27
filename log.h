@@ -1,5 +1,5 @@
-#ifndef LOG_H_
-#define LOG_H_
+#ifndef TSW_LOG_H_
+#define TSW_LOG_H_
 
 #include <stdio.h>
 
@@ -34,4 +34,4 @@ enum tswLog_level
 
 void tswLog_put(int level, char *cnt);
 
-#endif /* LOG_H_ */
+#endif /* TSW_LOG_H_ */

@@ -65,4 +65,7 @@ int tswCo_resume(tswCo_schedule *S, int id);
 int tswCo_yield(tswCo_schedule *S);
 int tswCo_status(tswCo_schedule *S, int id);
 
+struct htimer_mgr_s *tswCo_get_timer_mgr(tswCo_schedule *S);
+struct poll *tswCo_get_poll(tswCo_schedule *S);
+
 #endif /* TSW_COROUTINE_H_ */
