@@ -15,8 +15,8 @@ enum {
 
 struct htimer_mgr_s;
 struct poll *tswCo_get_poll(tswCo_schedule *S);
-void tswCo_init_mpoll(tswCo_schedule *S);
-void tswCo_release_mpoll(tswCo_schedule *S);
+void tswCo_init_poll(tswCo_schedule *S);
+void tswCo_release_poll(tswCo_schedule *S);
 int tswCo_poll(tswCo_schedule *S);
 int tswCo_wait(tswCo_schedule *S, int fd, int flag);
 

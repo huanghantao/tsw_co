@@ -100,7 +100,7 @@ tswCo_schedule* tswCo_open()
     S->nco = 0;
     S->running = -1;
     htimer_mgr_init(&S->timer_mgr);
-    tswCo_init_mpoll(S);
+    tswCo_init_poll(S);
     S->co = malloc(sizeof(tswCo *) * S->cap);
     if (S->co == NULL) {
         tswWarn("malloc error");
@@ -154,7 +154,7 @@ void tswCo_close(tswCo_schedule *S)
 
     free(S->co);
     S->co = NULL;
-    tswCo_release_mpoll(S);
+    tswCo_release_poll(S);
     free(S);
     S = NULL;
 }

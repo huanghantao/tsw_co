@@ -14,7 +14,7 @@ static uint64_t touint64(int fd, int id)
     return ret;
 }
 
-void tswCo_init_mpoll(tswCo_schedule *S)
+void tswCo_init_poll(tswCo_schedule *S)
 {
     size_t sz;
     struct poll *m_poll;
@@ -30,7 +30,7 @@ void tswCo_init_mpoll(tswCo_schedule *S)
     memset(m_poll->events, 0, sz);
 }
 
-void tswCo_release_mpoll(tswCo_schedule *S)
+void tswCo_release_poll(tswCo_schedule *S)
 {
     struct poll *m_poll;
 
