@@ -59,6 +59,8 @@ int tswCo_poll(tswCo_schedule *S)
     int epollfd;
     struct htimer_mgr_s *timer_mgr;
     int next;
+    int start_time;
+    int end_time;
 
     tsw_poll = tswCo_get_poll(S);
     events = tsw_poll->events;
@@ -74,10 +76,17 @@ int tswCo_poll(tswCo_schedule *S)
         return TSW_ERR;
     }
 
+    start_time = htimer_get_ms_time();
     n = epoll_wait(epollfd, events, tsw_poll->ncap, next);
+    end_time = htimer_get_ms_time();
     htimer_perform(timer_mgr);
     if (n <= 0) {
         return 0;
+    }
+
+    if (n > 0) {
+        htimer_t *handle = htimer_get_min_timer(timer_mgr);
+        htimer_modify_timeout(handle, end_time - start_time);
     }
 
     for (i = 0; i < n; i++) {

@@ -231,3 +231,21 @@ size_t htimer_perform(htimer_mgr_t *mgr)
     return run_timers(mgr);
 }
 
+htimer_t *htimer_get_min_timer(htimer_mgr_t *mgr)
+{
+    struct heap_node *heap_node;
+    htimer_t *handle;
+
+    heap_node = heap_min((struct heap *)&mgr->timer_heap);
+    if (heap_node == NULL) {
+        return NULL;	/* block indefinitely */
+    }
+    handle = container_of(heap_node, htimer_t, heap_node);
+
+    return handle;
+}
+void htimer_modify_timeout(htimer_t *handle, uint64_t timeout)
+{
+    handle->timeout = timeout;
+}
+

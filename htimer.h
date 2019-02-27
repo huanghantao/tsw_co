@@ -61,6 +61,8 @@ uint64_t htimer_get_ms_time();
 void htimer_ms_sleep(uint32_t ms);
 
 int htimer_mgr_init(htimer_mgr_t *mgr);
+htimer_t *htimer_get_min_timer(htimer_mgr_t *mgr);
+void htimer_modify_timeout(htimer_t *handle, uint64_t timeout);
 
 #if defined (__cplusplus)
 }	/*end of extern "C"*/
