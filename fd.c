@@ -89,3 +89,12 @@ ssize_t tswCo_write(tswCo_schedule *S, int fd, const void *buf, size_t count)
 
     return total;
 }
+
+int tswCo_close(tswCo_schedule *S, int fd)
+{
+    if (close(fd) < 0) {
+        tswWarn("%s", strerror(errno));
+        return TSW_ERR;
+    }
+    return TSW_OK;
+}

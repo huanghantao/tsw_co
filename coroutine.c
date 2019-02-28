@@ -144,7 +144,7 @@ int tswCo_run(tswCo_schedule *S)
 /*
  * @function: close the coroutine and coroutine schedule
 */
-void tswCo_close(tswCo_schedule *S)
+void tswCo_destroy(tswCo_schedule *S)
 {
     int id;
     tswCo *C;

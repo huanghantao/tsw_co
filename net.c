@@ -58,6 +58,7 @@ ssize_t tswCo_recv(tswCo_schedule *S, int connfd, void *buf, size_t len, int fla
 {
     int connfd_flags;
     int n = 0;
+    struct poll *tsw_poll;
 
     connfd_flags = fcntl(connfd, F_GETFL, 0);
     if (connfd_flags < 0) {
@@ -74,6 +75,15 @@ ssize_t tswCo_recv(tswCo_schedule *S, int connfd, void *buf, size_t len, int fla
     while ((n = recv(connfd, buf, len, flags)) < 0 && errno == EAGAIN) {
         if (tswCo_wait(S, connfd, TSW_FD_READ) < 0) {
             tswWarn("tswCo_wait error");
+            return TSW_ERR;
+        }
+    }
+
+    tsw_poll = tswCo_get_poll(S);
+
+    if (n == 0) {
+        if (epoll_ctl(tsw_poll->epollfd, EPOLL_CTL_DEL, connfd, NULL) < 0) {
+            tswWarn("epoll_ctl error: %s", strerror(errno));
             return TSW_ERR;
         }
     }
@@ -115,4 +125,13 @@ ssize_t tswCo_send(tswCo_schedule *S, int connfd, void *buf, size_t len, int fla
     }
 
     return total;
+}
+
+int tswCo_shutdown(tswCo_schedule *S, int socket, int how)
+{
+    if (shutdown(socket, how) < 0) {
+        tswWarn("%s", strerror(errno));
+        return TSW_ERR;
+    }
+    return TSW_OK;
 }

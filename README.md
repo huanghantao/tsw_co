@@ -82,7 +82,7 @@ int main(int argc, char const *argv[])
         }
     } while (!(tswCo_status(S, co0) == TSW_CO_DEAD && tswCo_status(S, co1) == TSW_CO_DEAD));
 
-    tswCo_close(S);
+    tswCo_destroy(S);
     
     return 0;
 }
@@ -229,7 +229,7 @@ int main(int argc, char const *argv[])
 
     tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, func1, (void *)(uintptr_t)1);
 
-    tswCo_close(S);
+    tswCo_destroy(S);
 
     return 0;
 }
@@ -323,7 +323,7 @@ int main(int argc, char const *argv[])
         return -1;
     }
     start_service(S);
-    tswCo_close(S);
+    tswCo_destroy(S);
 
     return 0;
 }

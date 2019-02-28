@@ -9,6 +9,7 @@
 #include "coroutine.h"
 #include "socket.h"
 #include "net.h"
+#include "fd.h"
 
 #define HOST "127.0.0.1"
 #define PORT 9501
@@ -25,8 +26,15 @@ void client_handle(tswCo_schedule *S, void *ud) {
         if ((n = tswCo_recv(S, connfd, buf, MAX_BUF_SIZE, 0)) < 0) {
             tswWarn("tswCo_recv error");
         }
-        if (tswCo_send(S, connfd, buf, n, 0) < 0) {
-            tswWarn("tswCo_send error");
+        if (n == 0) {
+            if (tswCo_close(S, connfd) < 0) {
+                tswWarn("tswCo_shutdown error");
+            }
+            break;
+        } else {
+            if (tswCo_send(S, connfd, buf, n, 0) < 0) {
+                tswWarn("tswCo_send error");
+            }
         }
     }
 }
@@ -82,7 +90,7 @@ int main(int argc, char const *argv[])
         return -1;
     }
     start_service(S);
-    tswCo_close(S);
+    tswCo_destroy(S);
 
     return 0;
 }

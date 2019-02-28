@@ -7,5 +7,5 @@
 
 ssize_t tswCo_read(tswCo_schedule *S, int fd, void *buf, size_t count);
 ssize_t tswCo_write(tswCo_schedule *S, int fd, const void *buf, size_t count);
-
+int tswCo_close(tswCo_schedule *S, int fd);
 #endif /* TSW_FD_H_ */
