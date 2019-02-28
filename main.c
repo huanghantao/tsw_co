@@ -66,7 +66,7 @@ int start_service(tswCo_schedule *S)
     if (tswSocket_bind(sockfd, TSW_SOCK_TCP, HOST, PORT) < 0) {
         tswWarn("tswSocket_bind error");
         return -1;
-	}
+    }
     if (listen(sockfd, LISTENQ) < 0) {
         tswWarn("%s", strerror(errno));
     }
