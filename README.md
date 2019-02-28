@@ -126,7 +126,7 @@ int main(int argc, char const *argv[])
     tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)1);
     tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, func, (void *)(uintptr_t)1);
 
-    tswCo_run(S, 0);
+    tswCo_run(S);
     
     return 0;
 }
@@ -182,7 +182,7 @@ int main(int argc, char const *argv[])
     tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, func, &arg1);
     tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, func, &arg2);
 
-    tswCo_run(S, 0);
+    tswCo_run(S);
     
     return 0;
 }
@@ -305,7 +305,7 @@ int start_service(tswCo_schedule *S)
     }
 
     tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, listen_service, (void *)(uintptr_t)sockfd);
-    tswCo_run(S, 0);
+    tswCo_run(S);
 
     return 0;
 }

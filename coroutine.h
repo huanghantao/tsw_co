@@ -64,7 +64,7 @@ struct tswCo {
 
 tswCo_schedule* tswCo_open();
 void tswCo_sleep(tswCo_schedule *S, int ms);
-int tswCo_run(tswCo_schedule *S, int flag);
+int tswCo_run(tswCo_schedule *S);
 void tswCo_close(tswCo_schedule *S);
 int tswCo_new(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud);
 int tswCo_create(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud);

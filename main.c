@@ -64,7 +64,7 @@ int start_service(tswCo_schedule *S)
     }
 
     tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, listen_service, (void *)(uintptr_t)sockfd);
-    tswCo_run(S, 0);
+    tswCo_run(S);
 
     return 0;
 }

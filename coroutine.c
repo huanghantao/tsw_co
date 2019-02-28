@@ -133,7 +133,7 @@ void tswCo_sleep(tswCo_schedule *S, int ms)
     tswCo_yield(S);
 }
 
-int tswCo_run(tswCo_schedule *S, int flag)
+int tswCo_run(tswCo_schedule *S)
 {
     do {
         tswCo_poll(S);
