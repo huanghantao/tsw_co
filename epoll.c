@@ -121,11 +121,9 @@ int tswCo_wait(tswCo_schedule *S, int fd, int flag)
     ev.events = flag == TSW_FD_READ ? EPOLLIN : EPOLLOUT;
     ev.data.u64 = touint64(fd, id);
 
-    if (epoll_ctl(m_poll->epollfd, EPOLL_CTL_ADD, fd, &ev) < 0) {
-        if (errno != EEXIST) {
-            tswWarn("%s", strerror(errno));
-            return TSW_ERR;
-        }
+    if (epoll_ctl(m_poll->epollfd, EPOLL_CTL_ADD, fd, &ev) < 0 && (errno != EEXIST)) {
+        tswWarn("%s", strerror(errno));
+        return TSW_ERR;
     }
     m_poll->nevents++;
     tswCo_yield(S);
