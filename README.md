@@ -1,3 +1,11 @@
+## Reference
+
+1、[Tencent/libco](https://github.com/Tencent/libco)
+
+2、[cloudwu/coroutine](https://github.com/cloudwu/coroutine)
+
+3、[rocaltair/mco](https://github.com/rocaltair/mco)
+
 ## Description
 
 You can write synchronous code to achieve asynchronous effects! Enjoy it!
