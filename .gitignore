@@ -2,3 +2,5 @@
 obj
 *.o
 main
+debug.log
+.gdb_history

@@ -14,7 +14,7 @@ enum {
 
 #define TSW_CO_DEFAULT_ST_SZ 2*1024*1024
 #define TSW_CO_DEFAULT_NUM 16
-#define TSW_CO_CALL_DEPTH 16
+#define TSW_CO_CALL_DEPTH 4
 
 typedef struct tswCo_schedule tswCo_schedule;
 typedef struct tswCo tswCo;

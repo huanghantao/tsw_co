@@ -3,6 +3,8 @@
 #include <netinet/ip.h>
 #include <errno.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "net.h"
 #include "log.h"
 #include "epoll.h"

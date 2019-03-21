@@ -78,6 +78,7 @@ static void tswCo_entry(uintptr_t low, uintptr_t high)
     id = S->running;
     C = S->co[id];
     C->func(S, C->ud);
+    tswDebug("coroutine [%d] dead", S->running);
     C->status = TSW_CO_DEAD;
     call_depth = S->co_call_depth;
     S->running = S->env[call_depth].co_id;
@@ -175,6 +176,9 @@ void tswCo_destroy(tswCo_schedule *S)
 */
 int tswCo_new(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud)
 {
+    tswDebug("nco is [%d]", S->nco);
+    tswDebug("cap is [%d]", S->cap);
+
     int i;
     int id;
     tswCo *C;
@@ -198,7 +202,7 @@ int tswCo_new(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud)
 
     for (i = 0; i <= S->cap; i++) {
         id = (i + S->nco) % S->cap;
-        if (S->co[id] == NULL) {
+        if (S->co[id] == NULL || S->co[id]->status == TSW_CO_DEAD) {
             break;
         }
     }
