@@ -457,3 +457,67 @@ int main(int argc, char const *argv[])
 }
 ```
 
+## Pressure test
+
+### tsw_co
+
+```shell
+sh-4.2# ab -c 100 -n 100000 127.0.0.1:9501/
+This is ApacheBench, Version 2.3 <$Revision: 1430300 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 127.0.0.1 (be patient)
+Completed 10000 requests
+Completed 20000 requests
+Completed 30000 requests
+Completed 40000 requests
+Completed 50000 requests
+Completed 60000 requests
+Completed 70000 requests
+Completed 80000 requests
+Completed 90000 requests
+Completed 100000 requests
+Finished 100000 requests
+
+
+Server Software:        
+Server Hostname:        127.0.0.1
+Server Port:            9501
+
+Document Path:          /
+Document Length:        13 bytes
+
+Concurrency Level:      100
+Time taken for tests:   7.538 seconds
+Complete requests:      100000
+Failed requests:        0
+Write errors:           0
+Total transferred:      9600000 bytes
+HTML transferred:       1300000 bytes
+Requests per second:    13266.45 [#/sec] (mean)
+Time per request:       7.538 [ms] (mean)
+Time per request:       0.075 [ms] (mean, across all concurrent requests)
+Transfer rate:          1243.73 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    5  81.9      2    3122
+Processing:    -4    2   2.2      2     209
+Waiting:        0    1   2.0      1     208
+Total:          0    8  82.0      3    3126
+
+Percentage of the requests served within a certain time (ms)
+  50%      3
+  66%      5
+  75%      6
+  80%      7
+  90%      7
+  95%      8
+  98%      9
+  99%     11
+ 100%   3126 (longest request)
+```
+
+
+

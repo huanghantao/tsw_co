@@ -19,7 +19,6 @@
 char *response_str = "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: text/html\r\nContent-Length: 11\r\n\r\nhello world\r\n";
 
 void client_handle(tswCo_schedule *S, void *ud) {
-    tswDebug("coroutine [%d] is running", S->running);
     int n;
     int connfd;
     char buf[MAX_BUF_SIZE];
@@ -56,10 +55,7 @@ void listen_service(tswCo_schedule *S, void *ud)
 
     sockfd = (int)(uintptr_t)ud;
 
-    tswDebug("coroutine [%d] is running", S->running);
-
     while ((connfd = tswCo_accept(S, sockfd, (struct sockaddr *)&cliaddr, &len)) > 0) {
-        tswDebug("a new connection [%d]", connfd);
         tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, client_handle, (void *)(uintptr_t)connfd);
     }
 }
