@@ -56,7 +56,7 @@ void listen_service(tswCo_schedule *S, void *ud)
 
     sockfd = (int)(uintptr_t)ud;
 
-    tswDebug("connection [%d] is running", S->running);
+    tswDebug("coroutine [%d] is running", S->running);
 
     while ((connfd = tswCo_accept(S, sockfd, (struct sockaddr *)&cliaddr, &len)) > 0) {
         tswDebug("a new connection [%d]", connfd);

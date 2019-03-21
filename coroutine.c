@@ -294,7 +294,8 @@ int tswCo_resume(tswCo_schedule *S, int id)
             return TSW_ERR;
         }
         call_depth = ++(S->co_call_depth);
-        S->env[call_depth].co_id = id;
+        S->env[call_depth].co_id = S->running;
+        S->running = id;
         coctx_swap(&(S->env[call_depth].ctx), &C->ctx);
         break;
     }
