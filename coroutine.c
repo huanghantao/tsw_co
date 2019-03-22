@@ -9,7 +9,7 @@ static inline void tswCo_delete(tswCo *C);
 static tswCo *new_tswCo(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud);
 static int tswCo_cap_check(tswCo_schedule *S);
 static void tswCo_entry(uintptr_t low, uintptr_t high);
-void tswCo_main(tswCo_schedule *S, void *ud);
+extern void tswCo_main(tswCo_schedule *S, int argc, char **argv);
 
 static tswCo *new_tswCo(tswCo_schedule *S, int st_sz, tswCo_func func, void *ud)
 {
@@ -364,9 +364,19 @@ struct poll *tswCo_get_poll(tswCo_schedule *S)
     return &S->m_poll;
 }
 
-int main(int argc, char const *argv[])
+static int tswCo_argc;
+static char **tswCo_argv;
+
+static void tswCo_mainstart(tswCo_schedule *S, void *ud)
+{
+    tswCo_main(S, tswCo_argc, tswCo_argv);
+}
+
+int main(int argc, char **argv)
 {
     tswCo_schedule *S;
+    tswCo_argc = argc;
+    tswCo_argv = argv;
 
     S = tswCo_open();
     if (S == NULL) {
@@ -374,7 +384,7 @@ int main(int argc, char const *argv[])
         return TSW_ERR;
     }
 
-    tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, tswCo_main, (void *)NULL);
+    tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, tswCo_mainstart, (void *)NULL);
     tswCo_scheduler(S);
     tswCo_destroy(S);
 

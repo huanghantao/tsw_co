@@ -36,7 +36,7 @@ void tswCo2(tswCo_schedule *S, void *ud)
  * you can define the task coroutine here
  */
 
-void tswCo_main(tswCo_schedule *S, void *ud)
+void tswCo_main(tswCo_schedule *S, int argc, char **argv)
 {
     tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, tswCo1, (void *)NULL);
     tswCo_create(S, TSW_CO_DEFAULT_ST_SZ, tswCo2, (void *)NULL);
